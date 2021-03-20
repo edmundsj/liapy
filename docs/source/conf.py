@@ -8,8 +8,8 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../tabularasa/source/'))
-sys.path.insert(0, os.path.abspath('../../tabularasa/test/'))
+sys.path.insert(0, os.path.abspath('../../liapy/source/'))
+sys.path.insert(0, os.path.abspath('../../liapy/test/'))
 
 
 # -- Project information -----------------------------------------------------

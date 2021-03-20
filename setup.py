@@ -2,11 +2,11 @@ import setuptools
 import os
 import glob
 
-example_data = glob.glob('tabularasa/examples/*')
-source_data = glob.glob('tabularasa/source/*')
-test_data = glob.glob('tabularasa/test/*')
+example_data = glob.glob('liapy/examples/*')
+source_data = glob.glob('liapy/source/*')
+test_data = glob.glob('liapy/test/*')
 total_data = example_data + source_data + test_data
-package_data = [x.replace('tabularasa/', '') for x in total_data]
+package_data = [x.replace('liapy/', '') for x in total_data]
 
 #raise ValueError(f'PACKAGE DATA: {package_data}')
 
@@ -14,18 +14,18 @@ with open("README.md", "r") as fh:
 	long_description = fh.read()
 
 	setuptools.setup(
-		name="tabularasa",
+		name="liapy",
 		version="0.1." + str(os.environ['GITHUB_RUN_NUMBER']),
 		author="Jordan Edmunds",
 		author_email="edmundsj@uci.edu",
-		description="ADD SHORT DESCRIPTION HERE",
+		description="Software lock-in amplifier written in python",
 		long_description=long_description,
 		long_description_content_type="text/markdown",
-		url="https://github.com/edmundsj/tabularasa",
+		url="https://github.com/edmundsj/liapy",
 		packages=setuptools.find_packages(),
 		include_package_data=True,
 		package_data={
-			"tabularasa": package_data
+			"liapy": package_data
 			},
 		classifiers=[
 			"Programming Language :: Python :: 3",
