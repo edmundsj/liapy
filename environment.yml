@@ -15,6 +15,7 @@ dependencies:
   - pandas
   - pip:
     - sphinxcontrib-bibtex
+    - spectralpy
     - pint
   - pyserial
   - pyvisa
