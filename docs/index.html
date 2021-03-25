@@ -160,55 +160,6 @@ is higher by a factor of approximately <span class="math notranslate nohighlight
 the Hann window changes the mean and spectral power of the data differently,
 and internally the LIA uses the <em>mean</em> of the data to compute the extracted
 amplitude, not the DC component, as it is much more efficient.</p>
-<dl class="py class">
-<dt id="LIA.LIA">
-<em class="property">class </em><code class="sig-prename descclassname">LIA.</code><code class="sig-name descname">LIA</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sampling_frequency</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sync_points</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#LIA.LIA" title="Permalink to this definition">¶</a></dt>
-<dd><p>Class for lock-in amplification of discrete-time measured data modulated sinusoidally.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>sampling_frequency</strong> – Frequency at which the data is sampled</p></li>
-<li><p><strong>data</strong> – The data which you want to analyze. Assumed to be a 1xN array</p></li>
-<li><p><strong>sync_points</strong> – 1xN array of points with a known phase of the modulation signal (i.e. zero crossings)</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt id="LIA.LIA.Modulate">
-<code class="sig-name descname">Modulate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modulation_frequency</span></em>, <em class="sig-param"><span class="n">synchronization_phase</span><span class="o">=</span><span class="default_value">3.141592653589793</span></em>, <em class="sig-param"><span class="n">window</span><span class="o">=</span><span class="default_value">'hann'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#LIA.LIA.Modulate" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>modulation_frequency</strong> – The desired frequency at which to modulate the signal (this is the expected signal frequency)</p></li>
-<li><p><strong>synchronization_phase</strong> – The phase of the synchronization points on a sin(x) signal, from 0-2pi</p></li>
-</ul>
-</dd>
-</dl>
-<p>Modulates the existing data with a sinusoid of known frequency.
-Returns data with the correct mean, but higher total signal power,
-by about a factor of 1.22. Recommended not to use directly except
-in boxcar mode for this reason.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="LIA.LIA.extractSignalAmplitude">
-<code class="sig-name descname">extractSignalAmplitude</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modulation_frequency</span><span class="o">=</span><span class="default_value">'auto'</span></em>, <em class="sig-param"><span class="n">synchronization_phase</span><span class="o">=</span><span class="default_value">3.141592653589793</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'rms'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#LIA.LIA.extractSignalAmplitude" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="LIA.LIA.extractSignalFrequency">
-<code class="sig-name descname">extractSignalFrequency</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#LIA.LIA.extractSignalFrequency" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extracts the signal frequency from the set of synchronization points and the known sampling frequency</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="LIA.LIA.trimToSyncPoints">
-<code class="sig-name descname">trimToSyncPoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#LIA.LIA.trimToSyncPoints" title="Permalink to this definition">¶</a></dt>
-<dd><p>Trims data to the first and last synchronization points we have</p>
-</dd></dl>
-
-</dd></dl>
-
 <div class="toctree-wrapper compound">
 </div>
 </div>
