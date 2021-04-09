@@ -66,7 +66,7 @@ class LIA:
 
     def modulate(
             self, data, modulation_frequency,
-            synchronization_phase=pi,window='hann'):
+            sync_phase_delay=pi,window='hann'):
         """
         Modulates data with a sinusoid of known frequency.
         Returns data with the correct mean, but higher total signal power,
@@ -75,7 +75,7 @@ class LIA:
 
         :param data: The data which you want modulated
         :param modulation_frequency: The desired frequency at which to modulate the signal (this is the expected signal frequency)
-        :param synchronization_phase: The phase of the synchronization points on a sin(x) signal, from 0-2pi
+        :param sync_phase_delay: The phase of the synchronization points on a sin(x) signal, from 0-2pi
         """
         if window == 'hann':
             hann_window = hann(len(data))
@@ -90,7 +90,7 @@ class LIA:
 
         if isinstance(data, pd.DataFrame):
             times = column_from_unit(data, ureg.s)
-            modulation_signal = sqrt(2)*sin(2*pi*modulation_frequency*times - synchronization_phase)
+            modulation_signal = sqrt(2)*sin(2*pi*modulation_frequency*times - sync_phase_delay)
 
             # This compensates for the offset of our sample points compared to the maxima of the sinewave - they have less power than they *should* as continuous-time signals
             squared_mean = np.mean(np.square(modulation_signal))
@@ -102,13 +102,13 @@ class LIA:
             return new_data
         else:
             times = np.arange(0, len(data), 1) * 1 / self.sampling_frequency
-            modulation_signal = sqrt(2)*sin(2*pi*modulation_frequency*times - synchronization_phase)
+            modulation_signal = sqrt(2)*sin(2*pi*modulation_frequency*times - sync_phase_delay)
             return window_data * data * modulation_signal
 
     def extract_signal_amplitude(
             self, data=None, modulation_frequency=None,
             sync_indices=None,
-            synchronization_phase=pi, mode='rms'):
+            sync_phase_delay=pi, mode='rms'):
         """
         Main method used to extract the amplitude of a dataset
 
@@ -130,7 +130,7 @@ class LIA:
 
         modulated_data = self.modulate(data=data,
             modulation_frequency=modulation_frequency,
-            synchronization_phase=synchronization_phase)
+            sync_phase_delay=sync_phase_delay)
 #import matplotlib.pyplot as plt
 #plt.plot(data.iloc[:,1])
 #plt.plot(modulated_data.iloc[:,1])

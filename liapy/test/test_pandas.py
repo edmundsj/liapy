@@ -137,7 +137,7 @@ def test_modulate_complex(data):
     data_desired.iloc[:,1] *= data['sin_norm']
     data_actual = data['lia'].modulate(data['test_data'],
             data['signal_frequency'], window='boxcar',
-            synchronization_phase=data['sync_phase'])
+            sync_phase_delay=data['sync_phase'])
     assert_frame_equal(data_actual, data_desired)
 
 def test_extract_amplitude_simple(data1):
