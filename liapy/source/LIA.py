@@ -1,5 +1,7 @@
 """
-Performs lock-in amplification of a given dataset
+Performs lock-in amplification of a given dataset.
+
+THIS CODE RIGHT NOW IS SO FUCKED. I NEED TO FIGURE OUT HOW TO REFACTOR IT SO THAT IT ACTUALLY MAKES SENSE. RIGHT NOW IT'S WRONG, WRONG, WRONG. NO TRIMMING. THE TRIMMING JUST CONFUSES EVERYTHING. TRIMMING IS NOW GONE, BUT STUFF IS STILL FUCKED.
 """
 from scipy.signal.windows import hann
 from sciparse import column_from_unit, sampling_period, title_to_quantity
@@ -7,6 +9,7 @@ import numpy as np
 import pandas as pd
 from liapy import ureg
 import pint
+import matplotlib.pyplot as plt
 pi, sin, sqrt, mean = np.pi, np.sin, np.sqrt, np.mean
 
 class LIA:
@@ -25,7 +28,7 @@ class LIA:
         elif isinstance(data, np.ndarray):
             sync_indices = sync_indices
         else:
-            raise ValueError("data type {type(data)} not supported")
+            raise ValueError(f"data type {type(data)} not supported")
 
         if sync_indices is None:
             raise ValueError("No Synchronization points detected. Please verify the signal generator is on and hooked up")
@@ -35,25 +38,7 @@ class LIA:
 
         self.sync_indices = sync_indices
         self.sampling_frequency = sampling_frequency
-        self.data = self.trim_to_sync_indices(data, sync_indices)
-
-    def trim_to_sync_indices(self, data, sync_indices):
-        """
-        Trims data so that we only have an integer number of periods
-        in the data we are analyzing to minimize spectral leakage
-
-        :param data: Data to trim. Must contain a "Sync" column.
-        """
-        start_index = sync_indices[0]
-        end_index = min(sync_indices[-1]+1, len(data))
-        trimmed_data = data[start_index:end_index].copy()
-
-        # Redefine t=0
-        if isinstance(trimmed_data, pd.DataFrame):
-            zero_offset = trimmed_data.iloc[0,0]
-            trimmed_data.iloc[:,0] -= zero_offset
-            trimmed_data = trimmed_data.reset_index(drop=True)
-        return trimmed_data
+        self.data = data
 
     def extract_signal_frequency(self, data, sync_indices):
         """
@@ -88,22 +73,34 @@ class LIA:
             raise ValueError('Window {window} not implemented. Choices ' +\
                              'are hann and boxcar')
 
+
         if isinstance(data, pd.DataFrame):
+            sync_indices = np.nonzero(data['Sync'].values)[0]
             times = column_from_unit(data, ureg.s)
-            modulation_signal = sqrt(2)*sin(2*pi*modulation_frequency*times - sync_phase_delay)
+            time_phase_delay = times[sync_indices[0]]* \
+                modulation_frequency * 2 * np.pi
+            total_phase_delay = time_phase_delay - sync_phase_delay
+#if time_phase_delay > sync_phase_delay:
+#total_phase_delay = time_phase_delay - sync_phase_delay
+#else:
+#total_phase_delay = sync_phase_delay - time_phase_delay
+
+            modulation_signal = sqrt(2)*np.sin(2*pi*modulation_frequency*times - total_phase_delay)
 
             # This compensates for the offset of our sample points compared to the maxima of the sinewave - they have less power than they *should* as continuous-time signals
             squared_mean = np.mean(np.square(modulation_signal))
             modulation_signal /= squared_mean
             new_data = data.copy()
+#plt.plot(modulation_signal)
+#plt.plot(data.iloc[9:,1].values*30)
+#plt.show()
             if isinstance(modulation_signal, pint.Quantity):
                 modulation_signal = modulation_signal.magnitude
             new_data.iloc[:,1] *= modulation_signal
             return new_data
         else:
-            times = np.arange(0, len(data), 1) * 1 / self.sampling_frequency
-            modulation_signal = sqrt(2)*sin(2*pi*modulation_frequency*times - sync_phase_delay)
-            return window_data * data * modulation_signal
+            # THIS DOES NOT CURRENTLY WORK. NEEDS TO BE FIXED.
+             raise ValueError('numpy arrays not currently supported. Just mimic the pandas stuff.')
 
     def extract_signal_amplitude(
             self, data=None, modulation_frequency=None,
@@ -118,12 +115,6 @@ class LIA:
             sync_indices = self.sync_indices
         if data is None:
             data = self.data
-        else:
-            new_data = data.copy()
-            sync_indices = np.nonzero(new_data['Sync'].values)[0]
-            trimmed_data = self.trim_to_sync_indices(
-                    new_data, sync_indices)
-            data = trimmed_data
         if modulation_frequency is None:
             modulation_frequency = \
                 self.extract_signal_frequency(data, sync_indices)
@@ -131,10 +122,6 @@ class LIA:
         modulated_data = self.modulate(data=data,
             modulation_frequency=modulation_frequency,
             sync_phase_delay=sync_phase_delay)
-#import matplotlib.pyplot as plt
-#plt.plot(data.iloc[:,1])
-#plt.plot(modulated_data.iloc[:,1])
-#plt.show()
         average_signal = modulated_data.mean()
         if isinstance(data, pd.DataFrame):
             if len(average_signal) == 3:
