@@ -5,7 +5,8 @@ import glob
 example_data = glob.glob('liapy/examples/*')
 source_data = glob.glob('liapy/source/*')
 test_data = glob.glob('liapy/test/*')
-total_data = example_data + source_data + test_data
+test_data_data = glob.glob('liapy/test/data/*')
+total_data = example_data + source_data + test_data + test_data_data
 package_data = [x.replace('liapy/', '') for x in total_data]
 
 #raise ValueError(f'PACKAGE DATA: {package_data}')

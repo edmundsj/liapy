@@ -80,10 +80,6 @@ class LIA:
             time_phase_delay = times[sync_indices[0]]* \
                 modulation_frequency * 2 * np.pi
             total_phase_delay = time_phase_delay - sync_phase_delay
-#if time_phase_delay > sync_phase_delay:
-#total_phase_delay = time_phase_delay - sync_phase_delay
-#else:
-#total_phase_delay = sync_phase_delay - time_phase_delay
 
             modulation_signal = sqrt(2)*np.sin(2*pi*modulation_frequency*times - total_phase_delay)
 
@@ -91,9 +87,6 @@ class LIA:
             squared_mean = np.mean(np.square(modulation_signal))
             modulation_signal /= squared_mean
             new_data = data.copy()
-#plt.plot(modulation_signal)
-#plt.plot(data.iloc[9:,1].values*30)
-#plt.show()
             if isinstance(modulation_signal, pint.Quantity):
                 modulation_signal = modulation_signal.magnitude
             new_data.iloc[:,1] *= modulation_signal

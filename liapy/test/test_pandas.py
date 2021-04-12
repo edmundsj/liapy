@@ -10,6 +10,13 @@ from matplotlib import pyplot as plt
 from liapy import LIA, ureg
 from sciparse import assert_equal_qt, assert_allclose_qt
 import pytest
+import os
+
+@pytest.fixture
+def file_path():
+    file_location = os.path.realpath(__file__)
+    directory_path = str(os.path.dirname(file_location))
+    return directory_path
 
 @pytest.fixture
 def data1():
@@ -245,3 +252,13 @@ def test_extract_minus_pi_2_offset():
     desired_amplitude = 1*ureg.V / np.sqrt(2)
     actual_amplitude = lia.extract_signal_amplitude(sync_phase_delay=np.pi/2)
     assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
+
+@pytest.mark.skip
+def test_extract_amplitude_real_data(file_path):
+    test_data = pd.read_csv(file_path + '/data/photovoltage_data.csv', skiprows=1)
+    lia = LIA(test_data)
+    actual_amplitude = lia.extract_signal_amplitude()
+    desired_amplitude_max = 0.01*ureg.mV
+    breakpoint()
+    assert abs(actual_amplitude) < desired_amplitude_max
+
