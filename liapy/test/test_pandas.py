@@ -36,6 +36,7 @@ def data1():
     sin_data = signal_rms_amplitude * np.sqrt(2) * np.sin(2 * np.pi * signal_frequency * times - phase_delay)
     sin_norm = np.sqrt(2) * \
                np.sin(2*np.pi * signal_frequency * times - phase_delay)
+    sin_norm -= np.mean(sin_norm)
     squared_mean = np.mean(np.square(sin_norm))
     sin_norm /= squared_mean
     data = pd.DataFrame({
@@ -79,7 +80,9 @@ def data():
     phases = 2*np.pi * signal_frequency * times
     delayed_phases = phases - phase_delay
     sin_data = signal_rms_amplitude * np.sqrt(2) * np.sin(delayed_phases)
+
     sin_norm = np.sqrt(2) / squared_mean * np.sin(delayed_phases)
+    sin_norm -= np.mean(sin_norm)
     zero_column = np.zeros(len(sin_data), dtype=np.int)
     zero_column[sync_indices] = 1
     test_data = pd.DataFrame({
@@ -130,9 +133,10 @@ def test_modulate_simple_zero_phase():
     lia = LIA(test_data)
     actual_data = lia.modulate(test_data, 250*ureg.Hz,
             sync_phase_delay=0, window='boxcar')
+
     desired_data = pd.DataFrame({
             'time (ms)': np.array([0, 1.0, 2, 3, 4, 5, 6]),
-            'Val (V)':  np.sqrt(2)/0.857142857 * np.array([0, 1.0, 0, 1, 0, 1, 0]),
+            'Val (V)':  np.sqrt(2)/0.857142857 * np.array([0, 0.9, 0, 1.2, 0, 0.9, 0]),
             'Sync':     np.array([1, 0, 0, 0, 1, 0, 0])})
     assert_frame_equal(actual_data, desired_data)
 
@@ -146,29 +150,29 @@ def test_modulate_simple_pi_2():
             sync_phase_delay=np.pi/2, window='boxcar')
     desired_data = pd.DataFrame({
             'time (ms)': np.array([0, 1.0, 2, 3, 4, 5, 6]),
-            'Val (V)':  np.sqrt(2)/0.857142857 * np.array([0, 1.0, 0, 1, 0, 1, 0]),
+            'Val (V)':  np.sqrt(2)/0.857142857 * np.array([0, 0.9, 0, 1.2, 0, 0.9, 0]),
             'Sync':     np.array([0, 1, 0, 0, 0, 1, 0])})
     assert_frame_equal(actual_data, desired_data)
 
 def test_modulate_simple_pi():
     test_data = pd.DataFrame({
-            'time (ms)': [0, 1, 2, 3, 4.0, 5, 6],
-            'Val (V)':  [0, 1, 0, -1.0, 0, 1, 0],
-            'Sync':     [0, 0, 1, 0, 0, 0, 1]})
+            'time (ms)': [0, 1, 2, 3, 4.0, 5, 6, 7],
+            'Val (V)':  [0, 1, 0, -1.0, 0, 1, 0, -1],
+            'Sync':     [0, 0, 1, 0, 0, 0, 1, 0]})
     lia = LIA(test_data)
     actual_data = lia.modulate(test_data, 250*ureg.Hz,
             sync_phase_delay=np.pi, window='boxcar')
     desired_data = pd.DataFrame({
-            'time (ms)': np.array([0, 1.0, 2, 3, 4, 5, 6]),
-            'Val (V)':  np.sqrt(2)/0.857142857 * np.array([0, 1.0, 0, 1, 0, 1, 0]),
-            'Sync':     np.array([0, 0, 1, 0, 0, 0, 1])})
+            'time (ms)': np.array([0, 1.0, 2, 3, 4, 5, 6, 7]),
+            'Val (V)':  np.sqrt(2) * np.array([0, 1.0, 0, 1, 0, 1, 0, 1]),
+            'Sync':     np.array([0, 0, 1, 0, 0, 0, 1, 0])})
     assert_frame_equal(actual_data, desired_data)
 
 def test_modulate_complex(data1):
     data_desired = data1['data'].copy()
     data_desired.iloc[:,1] *= data1['sin_norm']
     data_actual = data1['lia'].modulate(data1['data'], data1['signal_frequency'], sync_phase_delay=data1['sync_phase_delay'], window='boxcar')
-    assert_equal(np.mean(data_actual)[1], 1.0)
+    assert_allclose(np.mean(data_actual)[1], 1.0, atol=1e-10)
     assert_frame_equal(data_actual, data_desired)
 
 @pytest.mark.skip
@@ -191,7 +195,7 @@ def test_extract_amplitude_super_complex(data):
             data['lia'].extract_signal_amplitude(
                     modulation_frequency=105.4*ureg.Hz,
                     sync_phase_delay=data['sync_phase'])
-    desired_amplitude = 0.0358904219619713*ureg.V
+    desired_amplitude = 0.035890070877237404*ureg.V
     assert_equal_qt(actual_amplitude, desired_amplitude)
 
 def test_extract_pi_2():
@@ -253,12 +257,20 @@ def test_extract_minus_pi_2_offset():
     actual_amplitude = lia.extract_signal_amplitude(sync_phase_delay=np.pi/2)
     assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
 
-@pytest.mark.skip
+def test_with_large_dc():
+    test_data = pd.DataFrame({
+            'time (ms)': [1, 2, 3, 4, 5, 6],
+            'val (V)':  10000 + np.array([1, 0, -1, 0, 1, 0]),
+            'Sync':     [1, 0, 0, 0, 1, 0]})
+    lia = LIA(test_data)
+    desired_amplitude = 1*ureg.V / np.sqrt(2)
+    actual_amplitude = lia.extract_signal_amplitude(sync_phase_delay=np.pi/2)
+    assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
+
 def test_extract_amplitude_real_data(file_path):
     test_data = pd.read_csv(file_path + '/data/photovoltage_data.csv', skiprows=1)
     lia = LIA(test_data)
     actual_amplitude = lia.extract_signal_amplitude()
-    desired_amplitude_max = 0.01*ureg.mV
-    breakpoint()
-    assert abs(actual_amplitude) < desired_amplitude_max
+    desired_amplitude = (-0.0185371754 -4.60284137e-11) *ureg.mV
+    assert_equal_qt(actual_amplitude, desired_amplitude)
 

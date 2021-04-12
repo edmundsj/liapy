@@ -83,6 +83,8 @@ class LIA:
 
             modulation_signal = sqrt(2)*np.sin(2*pi*modulation_frequency*times - total_phase_delay)
 
+            modulation_signal -= np.mean(modulation_signal)
+
             # This compensates for the offset of our sample points compared to the maxima of the sinewave - they have less power than they *should* as continuous-time signals
             squared_mean = np.mean(np.square(modulation_signal))
             modulation_signal /= squared_mean
