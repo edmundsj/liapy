@@ -217,6 +217,7 @@ def test_extract_minus_pi_2():
     desired_amplitude = 1*ureg.V / np.sqrt(2)
     actual_amplitude = lia.extract_signal_amplitude(sync_phase_delay=-np.pi/2)
     assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
+
 def test_extract_pi():
     test_data = pd.DataFrame({
             'time (ms)': [0, 1, 2, 3, 4, 5, 6, 7],
@@ -224,6 +225,26 @@ def test_extract_pi():
             'Sync':     [0, 0, 1, 0, 0, 0, 1, 0]})
     lia = LIA(test_data)
     desired_amplitude = 1*ureg.V / np.sqrt(2)
+    actual_amplitude = lia.extract_signal_amplitude(sync_phase_delay=np.pi)
+    assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
+
+def test_extract_zero_with_offset():
+    test_data = pd.DataFrame({
+            'time (ms)': [0, 1, 2, 3, 4, 5, 6, 7],
+            'val (V)':  [1, 1, 1, 1, 1, 1, 1, 1],
+            'Sync':     [0, 0, 1, 0, 0, 0, 1, 0]})
+    lia = LIA(test_data)
+    desired_amplitude = 0*ureg.V
+    actual_amplitude = lia.extract_signal_amplitude(sync_phase_delay=np.pi)
+    assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
+
+def test_extract_zero_with_large_offset():
+    test_data = pd.DataFrame({
+            'time (ms)': [0, 1, 2, 3, 4, 5, 6, 7],
+            'val (V)':  1e6 * np.array([1, 1, 1, 1, 1, 1, 1, 1]),
+            'Sync':     [0, 0, 1, 0, 0, 0, 1, 0]})
+    lia = LIA(test_data)
+    desired_amplitude = 0*ureg.V
     actual_amplitude = lia.extract_signal_amplitude(sync_phase_delay=np.pi)
     assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
 
