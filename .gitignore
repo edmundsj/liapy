@@ -29,3 +29,4 @@ htmlcov/
 pytemplate.egg-info/
 
 debugging_notes
+.idea/
