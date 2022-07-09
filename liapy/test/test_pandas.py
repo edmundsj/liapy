@@ -1,6 +1,7 @@
 """
 Interestingly, this is off by a bit (about 0.6% when measuring 10 periods). This appears to converge to the correct answer when an increasing number of periods are included and an increasing number of points on the sinewave are sampled. If we want better accuracy than this we will need to perform some data interpolation i.e. (filtering)
 """
+# TODO: There seems to be a bug in modulate() with maximum-frequency signals, causing absurdly-high values.
 import unittest
 import numpy as np
 import pandas as pd
@@ -139,6 +140,27 @@ def test_modulate_simple_zero_phase():
             'Val (V)':  np.sqrt(2)/0.857142857 * np.array([0, 0.9, 0, 1.2, 0, 0.9, 0]),
             'Sync':     np.array([1, 0, 0, 0, 1, 0, 0])})
     assert_frame_equal(actual_data, desired_data)
+
+def test_modulate_max_freq():
+    """
+    The problem here is that our modulation signal is just a bunch of zeros. It appears either our synchronization phase or our data is wrong. For some reason our phases are not what they should be.
+    """
+
+    test_data = pd.DataFrame({
+            'Time (ms)': [0, 1, 2, 3, 4],
+            'Voltage (mV)': [1, -1, 1, -1, 1],
+            'Sync': [0, 1, 0, 1, 0],
+            })
+    lia = LIA(test_data)
+    desired_data = pd.DataFrame({
+            'Time (ms)': np.array([0, 1, 2, 3, 4]),
+            'Voltage (mV)': np.array([0.589256, 0.883883, 0.589256, 0.883883, 0.589256]),
+            'Sync':     np.array([0, 1, 0, 1, 0])})
+    actual_data = lia.modulate(data=test_data,
+            modulation_frequency=500*ureg.Hz,
+            sync_phase_delay=3/2*np.pi)
+    assert_frame_equal(actual_data, desired_data)
+
 
 def test_modulate_simple_pi_2():
     test_data = pd.DataFrame({
@@ -295,3 +317,14 @@ def test_extract_amplitude_real_data(file_path):
     desired_amplitude = (-0.0185371754 -4.60284137e-11) *ureg.mV
     assert_equal_qt(actual_amplitude, desired_amplitude)
 
+def test_extract_amplitude_max_freq():
+    test_data = pd.DataFrame({
+            'Time (ms)': [0, 1, 2, 3, 4],
+            'Voltage (mV)': [1, -1, 1, -1, 1],
+            'Sync': [0, 1, 0, 1, 0],
+            })
+    lia = LIA(test_data)
+    desired_amplitude = 1 * ureg.mV
+    actual_amplitude = lia.extract_signal_amplitude(
+            mode='amplitude', sync_phase_delay = 3/2*np.pi)
+    assert_equal_qt(actual_amplitude, desired_amplitude)

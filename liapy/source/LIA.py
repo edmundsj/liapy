@@ -73,15 +73,15 @@ class LIA:
             raise ValueError('Window {window} not implemented. Choices ' +\
                              'are hann and boxcar')
 
-
         if isinstance(data, pd.DataFrame):
             sync_indices = np.nonzero(data['Sync'].values)[0]
             times = column_from_unit(data, ureg.s)
             time_phase_delay = times[sync_indices[0]]* \
                 modulation_frequency * 2 * np.pi
             total_phase_delay = time_phase_delay - sync_phase_delay
+            phases = 2*pi*modulation_frequency*times - total_phase_delay
 
-            modulation_signal = sqrt(2)*np.sin(2*pi*modulation_frequency*times - total_phase_delay)
+            modulation_signal = sqrt(2)*np.sin(phases)
 
             modulation_signal -= np.mean(modulation_signal)
 
