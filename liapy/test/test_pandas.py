@@ -9,7 +9,7 @@ from numpy.testing import assert_equal, assert_allclose
 from pandas.testing import assert_frame_equal
 from matplotlib import pyplot as plt
 from liapy import LIA, ureg
-from sciparse import assert_equal_qt, assert_allclose_qt
+from sciparse import assert_allclose_qt
 import pytest
 import os
 
@@ -104,10 +104,10 @@ def data():
     }
 
 def testLIASetup(data):
-    assert_equal_qt(data['lia'].sampling_frequency, data['sampling_frequency'])
+    assert_allclose_qt(data['lia'].sampling_frequency, data['sampling_frequency'], atol=1e-6)
     desired_data = data['test_data']
     actual_data = data['lia'].data
-    assert_frame_equal(actual_data, desired_data)
+    assert_frame_equal(actual_data, desired_data, atol=1e-6)
 
 def test_setup_no_sync(data):
     test_data = data['test_data']
@@ -119,12 +119,12 @@ def test_extract_signal_frequency_simple(data1):
     actual_frequency = data1['lia'].extract_signal_frequency(
             data1['data'], sync_indices=data1['sync_indices'])
     desired_frequency = data1['signal_frequency']
-    assert_equal_qt(actual_frequency, desired_frequency)
+    assert_allclose_qt(actual_frequency, desired_frequency, atol=1e-6)
 
 def test_extract_signal_frequency(data):
     actual_frequency = data['lia'].extract_signal_frequency(data['test_data'], sync_indices=data['sync_indices'])
     desired_frequency = 105.32030401737242*ureg.Hz
-    assert_equal_qt(actual_frequency, desired_frequency)
+    assert_allclose_qt(actual_frequency, desired_frequency, atol=1e-6)
 
 def test_modulate_simple_zero_phase():
     test_data = pd.DataFrame({
@@ -139,7 +139,7 @@ def test_modulate_simple_zero_phase():
             'time (ms)': np.array([0, 1.0, 2, 3, 4, 5, 6]),
             'Val (V)':  np.sqrt(2)/0.857142857 * np.array([0, 0.9, 0, 1.2, 0, 0.9, 0]),
             'Sync':     np.array([1, 0, 0, 0, 1, 0, 0])})
-    assert_frame_equal(actual_data, desired_data)
+    assert_frame_equal(actual_data, desired_data, atol=1e-6)
 
 def test_modulate_max_freq():
     """
@@ -218,7 +218,7 @@ def test_extract_amplitude_super_complex(data):
                     modulation_frequency=105.4*ureg.Hz,
                     sync_phase_delay=data['sync_phase'])
     desired_amplitude = 0.035890070877237404*ureg.V
-    assert_equal_qt(actual_amplitude, desired_amplitude)
+    assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
 
 def test_extract_pi_2():
     test_data = pd.DataFrame({
@@ -315,7 +315,7 @@ def test_extract_amplitude_real_data(file_path):
     lia = LIA(test_data)
     actual_amplitude = lia.extract_signal_amplitude()
     desired_amplitude = (-0.0185371754 -4.60284137e-11) *ureg.mV
-    assert_equal_qt(actual_amplitude, desired_amplitude)
+    assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
 
 def test_extract_amplitude_max_freq():
     test_data = pd.DataFrame({
@@ -327,4 +327,4 @@ def test_extract_amplitude_max_freq():
     desired_amplitude = 1 * ureg.mV
     actual_amplitude = lia.extract_signal_amplitude(
             mode='amplitude', sync_phase_delay = 3/2*np.pi)
-    assert_equal_qt(actual_amplitude, desired_amplitude)
+    assert_allclose_qt(actual_amplitude, desired_amplitude, atol=1e-6)
